@@ -28,6 +28,7 @@ router.post("/token", async function (req, res, next) {
     }
 
     const { username, password } = req.body;
+    console.log("Request Body:", req.body); // Add this line
     const user = await User.authenticate(username, password);
     const token = createToken(user);
     return res.json({ token });
