@@ -305,8 +305,8 @@ describe("DELETE /users/:username", function () {
     expect(resp.statusCode).toEqual(404);
   });
 
-  test("works for admin", function (){
-    const resp = await.req(app)
+  test("works for admin", async function (){
+    const resp = await request(app)
       .delete(`/users/u1`)
       .set("authorization", `Bearer ${adminToken}`);
     expect(resp.body).toEqual({ deleted: "u1" });

@@ -215,7 +215,48 @@ class User {
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
   }
-}
 
+   /** Apply for a job.
+   *
+   * Returns { applied: jobId }
+   *
+   * Throws NotFoundError if user or job not found.
+   */
+   static async apply(username, jobId) {
+    const jobCheck = await db.query(
+      `SELECT id
+      FROM jobs
+      WHERE id = $1`,
+      [jobId],
+    );
+
+    const job = jobCheck.rows[0];
+
+    if (!job) {
+      throw new NotFoundError(`UNo job: ${jobId}`);
+    }
+
+    const userCheck = await db.query(
+      `SELECT username
+      FROM users
+      WHERE username = $1`
+      [username]);
+
+      const user = userCheck.rows[0];
+      if (!user) {
+        throw new NotFoundError(`No username: ${username}`);
+      }
+  
+      // Insert the application
+      await db.query(
+        `INSERT INTO applications (username, job_id)
+         VALUES ($1, $2)
+         RETURNING job_id AS "applied"`,
+        [username, jobId]
+      );
+  
+      return { applied: jobId };
+    }
+}
 
 module.exports = User;
