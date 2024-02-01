@@ -84,7 +84,13 @@ describe("get", function () {
       title: "j1", 
       salary: 10000,
       equity: '0.1',
-      companyHandle: "c1",
+      company: {
+        handle: "c1",
+        name: "C1",
+        description: "Desc1",
+        numEmployees: 1,
+        logoUrl: "http://c1.img",
+      },
     });
   });
 

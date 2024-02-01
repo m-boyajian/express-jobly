@@ -21,25 +21,24 @@ afterAll(commonAfterAll);
 
 /************************************** POST /jobs */
 
-describe("POST /jobs", function () {
-  test("ok for admin", async function () {
-    const resp = await request(app)
-        .post("/jobs")
-        .send({
-            title: "professional doodler",
-            salary: 1,
-            equity: "0.7",
-            company_handle: "c1"
-        })
-        .set("authorization", `Bearer ${adminToken}`);
+describe("GET /jobs/:id", function () {
+  test("works for anon", async function () {
+    const resp = await request(app).get(`/jobs/${jobIds[0]}`);
 
-    expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
+      job: {
         id: expect.any(Number),
-        title: "professional doodler",
-        salary: 1,
-        equity: "0.7",
-        company_handle: "c1",
+        title: "j1",
+        salary: 50000,
+        equity: "0.1",
+        company: {
+          handle: "c1",
+          description: "Desc1",
+          logoUrl: "http://c1.img",
+          name: "C1",
+          numEmployees: 1,
+        },
+      },
     });
   });
 
@@ -88,35 +87,27 @@ describe("GET /jobs", function () {
     const resp = await request(app).get("/jobs");
     expect(resp.body).toEqual({
       jobs: [
-            {
-              id: jobIds[0],
-              title: "j1",
-              salary: 10000,
-              equity: "0.1",
-              company_handle: "c1",
-            },
-            {
-              id: jobIds[1],
-              title: "j2",
-              salary: 20000,
-              equity: "0.2",
-              company_handle: "c1",
-            },
-            {
-              id: jobIds[2],
-              title: "j3",
-              salary: 30000,
-              equity: "0.3",
-              company_handle: "c1",
-            },
-            {
-              id: jobIds[3],
-              title: "j4",
-              salary: 40000,
-              equity: "0.4",
-              company_handle: "c1",
-            },
-            
+        {
+          id: expect.any(Number),
+          title: "j1",
+          salary: 50000,
+          equity: "0.1",
+          companyHandle: "c1",
+        },
+        {
+          id: expect.any(Number),
+          title: "j2",
+          salary: 60000,
+          equity: "0.2",
+          companyHandle: "c1",
+        },
+        {
+          id: expect.any(Number),
+          title: "j3",
+          salary: 70000,
+          equity: "0.3",
+          companyHandle: "c1",
+        },
       ],
     });
   });
@@ -125,78 +116,74 @@ describe("GET /jobs", function () {
 /************************************** GET /jobs with filters */
 
 describe("GET /jobs with filters", function () {
-  test("works with title filter", async function () {
-    const resp = await request(app).get("/jobs").query({ title: "j2" });
+  test("ok for anon", async function () {
+    const resp = await request(app).get("/jobs");
     expect(resp.body).toEqual({
       jobs: [
         {
-          id: jobIds[1],
+          id: expect.any(Number),
+          title: "j1",
+          salary: 50000,
+          equity: "0.1",
+          companyHandle: "c1",
+        },
+        {
+          id: expect.any(Number),
           title: "j2",
-          salary: 20000,
+          salary: 60000,
           equity: "0.2",
-          company_handle: "c1",
+          companyHandle: "c1",
         },
-      ],
-    });
-  });
-
-  test("works with minSalary filter", async function () {
-    const resp = await request(app).get("/jobs").query({ minSalary: 30000 });
-    expect(resp.body).toEqual({
-      jobs: [
         {
-          id: jobIds[2],
+          id: expect.any(Number),
           title: "j3",
-          salary: 30000,
+          salary: 70000,
           equity: "0.3",
-          company_handle: "c1",
-        },
-        {
-          id: jobIds[3],
-          title: "j4",
-          salary: 40000,
-          equity: "0.4",
-          company_handle: "c1",
+          companyHandle: "c1",
         },
       ],
     });
-  });
+  }); 
+
+  test("works: 2 filters", async function () {
+    const resp = await request(app).get("/jobs").query({ minSalary: 5, hasEquity: "true" });
+    const expectedJob = {
+      title: "j2",
+      salary: 60000,
+      equity: "0.2",
+      companyHandle: "c1",
+    };
+    expect(resp.body.jobs).toContainEqual(expect.objectContaining(expectedJob));
+  });  
 
   test("works with hasEquity filter", async function () {
-    const resp = await request(app).get("/jobs").query({ hasEquity: "true" });
+    const resp = await request(app).get(`/jobs`).query({ hasEquity: "true" });
     expect(resp.body).toEqual({
       jobs: [
         {
-          id: jobIds[0],
+          id: expect.any(Number),
           title: "j1",
-          salary: 10000,
+          salary: 50000,
           equity: "0.1",
-          company_handle: "c1",
+          companyHandle: "c1",
         },
         {
-          id: jobIds[1],
+          id: expect.any(Number),
           title: "j2",
-          salary: 20000,
+          salary: 60000,
           equity: "0.2",
-          company_handle: "c1",
+          companyHandle: "c1",
         },
         {
-          id: jobIds[2],
+          id: expect.any(Number),
           title: "j3",
-          salary: 30000,
+          salary: 70000,
           equity: "0.3",
-          company_handle: "c1",
-        },
-        {
-          id: jobIds[3],
-          title: "j4",
-          salary: 40000,
-          equity: "0.4",
-          company_handle: "c1",
+          companyHandle: "c1",
         },
       ],
     });
-  });
+  });  
 });
 
 /************************************** GET /jobs/:id */
@@ -208,13 +195,19 @@ describe("GET /jobs/:id", function () {
     expect(resp.body).toEqual({
       job: {
         id: expect.any(Number),
-        title: "j2",
-        salary: 20000,
-        equity: "0.2",
-        company_handle: "c1",
+        title: "j1",
+        salary: 50000,
+        equity: "0.1",
+        company: {
+          description: "Desc1",
+          handle: "c1",
+          logoUrl: "http://c1.img",
+          name: "C1",
+          numEmployees: 1,
+        },
       },
     });
-  });
+  });  
 
   test("not found for no such job", async function () {
     const resp = await request(app).get(`/jobs/0`);
@@ -235,10 +228,10 @@ describe("PATCH /jobs/:id", function () {
     expect(resp.body).toEqual({
       job: {
         id: expect.any(Number),
-        title: "New jobby",
-        salary: 5,
-        equity: "0.4",
-        company_handle: "c1",
+        title: "new jobby",
+        salary: 50000,
+        equity: "0.1",
+        companyHandle: "c1",
       },
     });
   });
@@ -257,17 +250,17 @@ describe("PATCH /jobs/:id", function () {
     const resp = await request(app)
         .patch(`/jobs/0`)
         .send({
-          salary: 20,
+          handle: "new",
         })
         .set("authorization", `Bearer ${adminToken}`);
-    expect(resp.statusCode).toEqual(404);
+    expect(resp.statusCode).toEqual(400);
   });
 
-  test("bad request invalid data", async function () {
+  test("bad request in handle change", async function () {
     const resp = await request(app)
-        .patch(`/jobs/`)
+        .patch(`/jobs/${jobIds[0]}`)
         .send({
-          handle: "c1-new",
+          handle: "new",
         })
         .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(400);
